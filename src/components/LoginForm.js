@@ -9,7 +9,7 @@ const LoginForm = ({ existingUser }) => {
     event.preventDefault();
 
     try {
-      await FirebaseAuthService.registerUser(username, password);
+      await FirebaseAuthService.loginUser(username, password);
       setUsername("");
       setPassword("");
     } catch (error) {
@@ -19,6 +19,27 @@ const LoginForm = ({ existingUser }) => {
 
   function handleLogout() {
     FirebaseAuthService.logoutUser();
+  }
+
+  async function handleResetPassword() {
+    if (!username) {
+      alert("Missing username!");
+      return;
+    }
+    try {
+      await FirebaseAuthService.sendPasswordResetEmail(username);
+      alert("Sent the reset password email!");
+    } catch (error) {
+      alert(error.message);
+    }
+  }
+
+  async function handelLoginWithGoogle() {
+    try {
+      await FirebaseAuthService.loginWithGoogle();
+    } catch (error) {
+      alert(error.message);
+    }
   }
 
   return (
@@ -53,7 +74,21 @@ const LoginForm = ({ existingUser }) => {
             ></input>
           </label>
           <div className="button-box">
-            <button className="primary-button">Submit</button>
+            <button className="primary-button">Login</button>
+            <button
+              type="button"
+              onClick={handleResetPassword}
+              className="primary-button"
+            >
+              Reset Password
+            </button>
+            <button
+              type="button"
+              onClick={handelLoginWithGoogle}
+              className="primary-button"
+            >
+              Login with Google
+            </button>
           </div>
         </form>
       )}
