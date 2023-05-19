@@ -7,8 +7,8 @@ function AddEditRecipeForm({ handleAddRecipe }) {
     new Date().toISOString().split("T")[0]
   );
   const [directions, setDirections] = useState("");
-  const [ingredients, setIngredients] = useState([]);
-  const [ingredientName, setIngredientName] = useState("");
+//  const [ingredients, setIngredients] = useState([]);
+//  const [ingredientName, setIngredientName] = useState("");
 
   return (
     <form className="add-edit-recipe-form-container">
