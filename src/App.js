@@ -5,7 +5,6 @@ import AddEditRecipeForm from "./components/AddEditRecipeForm";
 
 import "./App.css";
 import FirebaseFirestoreService from "./FirebaseFirestoreService";
-import { orderBy } from "firebase/firestore";
 
 function App() {
   const [user, setUser] = useState(null);
