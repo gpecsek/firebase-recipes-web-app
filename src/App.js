@@ -5,6 +5,7 @@ import AddEditRecipeForm from "./components/AddEditRecipeForm";
 
 import "./App.css";
 import FirebaseFirestoreService from "./FirebaseFirestoreService";
+import { orderBy } from "firebase/firestore";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -12,6 +13,19 @@ function App() {
   const [recipes, setRecipes] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState("");
+  const [orderBy, setOrderBy] = useState("publishDateDesc");
+
+  const setCategoryFilterHandler = (category) => {
+    startTransition(() => {
+      setCategoryFilter(category);
+    });
+  };
+
+  const setOrderByHandler = (order) => {
+    startTransition(() => {
+      setOrderBy(order);
+    });
+  };
 
   useEffect(() => {
     setIsLoading(true);
@@ -27,8 +41,8 @@ function App() {
       .finally(() => {
         setIsLoading(false);
       });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, categoryFilter]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, categoryFilter, orderBy]);
 
   FirebaseAuthService.subscribeToAuthChanges(setUser);
 
@@ -51,12 +65,30 @@ function App() {
       });
     }
 
+    const orderByField = "publishDate";
+    let orderByDirection;
+
+    if (orderBy) {
+      switch (orderBy) {
+        case "publishDateAsc":
+          orderByDirection = "asc";
+          break;
+        case "publishDateDesc":
+          orderByDirection = "desc";
+          break;
+        default:
+          break;
+      }
+    }
+
     let fetchedRecipes = [];
 
     try {
       const response = await FirebaseFirestoreService.readDocuments({
         collection: "recipes",
         queries: queries,
+        orderByField: orderByField,
+        orderByDirection: orderByDirection,
       });
 
       const newRecipes = response.docs.map((recipeDoc) => {
@@ -199,7 +231,7 @@ function App() {
             Category:
             <select
               value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
+              onChange={(e) => setCategoryFilterHandler(e.target.value)}
               className="select"
               required
             >
@@ -213,6 +245,16 @@ function App() {
               </option>
               <option value="fishAndSeafood">Fish & Seafood</option>
               <option value="vegetables">Vegetables</option>
+            </select>
+          </label>
+          <label className="input-label">
+            <select
+              value={orderBy}
+              onChange={(e) => setOrderByHandler(e.target.value)}
+              className="select"
+            >
+              <option value="publishDateDesc">Publish Date (Newest - Oldest)</option>
+              <option value="publishDateAsc">Publish Date (Oldest - Newest)</option>
             </select>
           </label>
         </div>

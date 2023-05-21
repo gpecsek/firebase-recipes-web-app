@@ -24,7 +24,7 @@ const createDocument = (collection, document) => {
   return getDoc(doc(firestoreCollection(firestore, collection), id));
 } */
 
-const readDocuments = async ({ collection, queries }) => {
+const readDocuments = async ({ collection, queries, orderByField, orderByDirection }) => {
   const collectionRef = firestoreCollection(firestore, collection);
 
   const queryConstraints = [];
@@ -35,9 +35,9 @@ const readDocuments = async ({ collection, queries }) => {
     }
   }
 
-  /*   if(orderByField && orderByDirection) {
+  if(orderByField && orderByDirection) {
     queryConstraints.push(orderBy(orderByField, orderByDirection));
-  } */
+  }
 
   /*   if (perPage) {
     queryConstraints.push(limit(perPage));
