@@ -6,7 +6,7 @@ import {
   collection as firestoreCollection,
   query,
   where,
-  //orderBy,
+  orderBy,
   //limit,
   //startAfter,
   getDocs,
