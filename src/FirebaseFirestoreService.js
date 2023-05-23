@@ -2,13 +2,13 @@ import firebase from "./FirebaseConfig";
 import {
   addDoc,
   doc,
-  //getDoc,
+  getDoc,
   collection as firestoreCollection,
   query,
   where,
   orderBy,
-  //limit,
-  //startAfter,
+  limit,
+  startAfter,
   getDocs,
   updateDoc,
   deleteDoc,
@@ -20,11 +20,11 @@ const createDocument = (collection, document) => {
   return addDoc(firestoreCollection(firestore, collection), document);
 };
 
-/* const readDocument = (collection, id) => {
+const readDocument = (collection, id) => {
   return getDoc(doc(firestoreCollection(firestore, collection), id));
-} */
+}
 
-const readDocuments = async ({ collection, queries, orderByField, orderByDirection }) => {
+const readDocuments = async ({ collection, queries, orderByField, orderByDirection, perPage, cursorId }) => {
   const collectionRef = firestoreCollection(firestore, collection);
 
   const queryConstraints = [];
@@ -39,14 +39,14 @@ const readDocuments = async ({ collection, queries, orderByField, orderByDirecti
     queryConstraints.push(orderBy(orderByField, orderByDirection));
   }
 
-  /*   if (perPage) {
+    if (perPage) {
     queryConstraints.push(limit(perPage));
-  } */
+  }
 
-  /*   if(cursorId) {
+    if(cursorId) {
     const document = await readDocument(collection, cursorId);
     queryConstraints.push(startAfter(document));
-  } */
+  }
 
   const firestoreQuery = query(collectionRef, ...queryConstraints);
 

@@ -13,6 +13,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState("");
   const [orderBy, setOrderBy] = useState("publishDateDesc");
+  const [recipesPerPage, setRecipesPerPage] = useState(3);
 
   const setCategoryFilterHandler = (category) => {
     startTransition(() => {
@@ -41,11 +42,11 @@ function App() {
         setIsLoading(false);
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, categoryFilter, orderBy]);
+  }, [user, categoryFilter, orderBy, recipesPerPage]);
 
   FirebaseAuthService.subscribeToAuthChanges(setUser);
 
-  async function fetchRecipes() {
+  async function fetchRecipes(cursorId = "") {
     const queries = [];
 
     if (categoryFilter) {
@@ -88,6 +89,8 @@ function App() {
         queries: queries,
         orderByField: orderByField,
         orderByDirection: orderByDirection,
+        perPage: recipesPerPage,
+        cursorId: cursorId,
       });
 
       const newRecipes = response.docs.map((recipeDoc) => {
@@ -98,7 +101,11 @@ function App() {
         return { ...data, id };
       });
 
-      fetchedRecipes = [...newRecipes];
+      if (cursorId) {
+        fetchedRecipes = [...recipes, ...newRecipes];
+      } else {
+        fetchedRecipes = [...newRecipes];
+      }
     } catch (error) {
       console.error(error.message);
       throw error;
@@ -107,9 +114,27 @@ function App() {
     return fetchedRecipes;
   }
 
-  async function handleFetchRecipes() {
+  function handleRecipesPerPageChange(event) {
+    const recipesPerPage = event.target.value;
+
+    startTransition(() => {
+      setRecipes([]);
+    });
+    startTransition(() => {
+      setRecipesPerPage(recipesPerPage);
+    });
+  }
+
+  function handleLoadMoreRecips() {
+    const lastRecipe = recipes[recipes.length - 1];
+    const cursorId = lastRecipe.id;
+
+    handleFetchRecipes(cursorId);
+  }
+
+  async function handleFetchRecipes(cursorId = "") {
     try {
-      const fetchedRecipes = await fetchRecipes();
+      const fetchedRecipes = await fetchRecipes(cursorId);
 
       setRecipes(fetchedRecipes);
     } catch (error) {
@@ -252,8 +277,12 @@ function App() {
               onChange={(e) => setOrderByHandler(e.target.value)}
               className="select"
             >
-              <option value="publishDateDesc">Publish Date (Newest - Oldest)</option>
-              <option value="publishDateAsc">Publish Date (Oldest - Newest)</option>
+              <option value="publishDateDesc">
+                Publish Date (Newest - Oldest)
+              </option>
+              <option value="publishDateAsc">
+                Publish Date (Oldest - Newest)
+              </option>
             </select>
           </label>
         </div>
@@ -304,6 +333,31 @@ function App() {
             ) : null}
           </div>
         </div>
+        {isLoading || (recipes && recipes.length > 0) ? (
+          <>
+            <label className="input-label">
+              Recipes Per per:
+              <select
+                value={recipesPerPage}
+                onChange={handleRecipesPerPageChange}
+                className="select"
+              >
+                <option value="3">3</option>
+                <option value="6">6</option>
+                <option value="9">9</option>
+              </select>
+            </label>
+            <div className="pagination">
+              <button
+                type="button"
+                onClick={handleLoadMoreRecips}
+                className="primary-button"
+              >
+                LOAD MORE RECIPES
+              </button>
+            </div>
+          </>
+        ) : null}
         {user ? (
           <AddEditRecipeForm
             existingRecipe={currentRecipe}
