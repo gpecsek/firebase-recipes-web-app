@@ -40,7 +40,7 @@ function App() {
       })
       .finally(() => {
         setIsLoading(false);
-      });
+      });      
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, categoryFilter, orderBy, recipesPerPage]);
 
