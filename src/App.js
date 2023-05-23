@@ -40,7 +40,7 @@ function App() {
       })
       .finally(() => {
         setIsLoading(false);
-      });      
+      });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, categoryFilter, orderBy, recipesPerPage]);
 
@@ -311,6 +311,15 @@ function App() {
                         <div className="unpublished">UNPUBLISHED</div>
                       ) : null}
                       <div className="recipe-name">{recipe.name}</div>
+                      <div className="recipe-image-box">
+                        {recipe.imageUrl ? (
+                          <img
+                            src={recipe.imageUrl}
+                            alt={recipe.name}
+                            className="recipe-image"
+                          />
+                        ) : null}
+                      </div>
                       <div className="recipe-field">
                         Category: {lookupCategoryLabel(recipe.category)}
                       </div>

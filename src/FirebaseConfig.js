@@ -5,6 +5,7 @@ import "firebase/compat/storage";
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage'
 
 const config = {
   apiKey: process.env.REACT_APP_API_KEY,
@@ -17,15 +18,16 @@ const config = {
 };
 
 // Version 8
-const classicFirebaseApp = firebase.initializeApp(config);
+//const classicFirebaseApp = firebase.initializeApp(config);
 // const auth = classicFirebaseApp.auth();
 // const firestore = classicFirebaseApp.firestore();
-const storage = classicFirebaseApp.storage();
+// const storage = classicFirebaseApp.storage();
 
 // Version 9
 const firebaseApp = initializeApp(config);
 const auth = getAuth(firebaseApp);
 const firestore = getFirestore(firebaseApp);
+const storage = getStorage(firebaseApp);
 
 
 const firebaseConfig = {
