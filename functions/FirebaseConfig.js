@@ -6,6 +6,7 @@ const FIREBASE_STORAGE_BUCKET = "fir-recipes-4bd38.appspot.com";
 const apiFirebaseOptions = {
   ...functions.config().firebase,
   credential: admin.credential.applicationDefault(),
+  projectId: `fir-recipes-4bd38`
 };
 
 admin.initializeApp(apiFirebaseOptions);

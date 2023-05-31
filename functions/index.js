@@ -1,8 +1,12 @@
 const FirebaseConfig = require("./FirebaseConfig");
+const recipesAPI = require('./recipesAPI');
+
 const functions = FirebaseConfig.functions;
 const firestore = FirebaseConfig.firestore;
 const storageBucket = FirebaseConfig.storageBucket;
 const admin = FirebaseConfig.admin;
+
+exports.api = functions.https.onRequest(recipesAPI);
 
 exports.onCreateRecipe = functions.firestore
   .document("recipes/{recipeId}")
@@ -81,3 +85,78 @@ exports.onDeleteRecipe = functions.firestore
       }
     }
   });
+
+exports.onUpdateRecipe = functions.firestore
+  .document("recipes/{recipeId}")
+  .onUpdate(async (changes) => {
+    const oldRecipe = changes.before.data();
+    const newRecipe = changes.after.data();
+
+    let publishCount = 0;
+
+    if (!oldRecipe.isPublished && newRecipe.isPublished) {
+      publishCount += 1;
+    } else if (oldRecipe.isPublished && !newRecipe.isPublished) {
+      publishCount -= 1;
+    }
+
+    if (publishCount !== 0) {
+      const publishedCountDocRef = firestore
+        .collection("recipesCounts")
+        .doc("published");
+
+      const publishedCountDoc = await publishedCountDocRef.get();
+
+      if (publishedCountDoc.exists) {
+        publishedCountDocRef.update({
+          count: admin.firestore.FieldValue.increment(publishCount),
+        });
+      } else {
+        if (publishCount > 0) {
+          publishedCountDocRef.set({ count: publishCount });
+        } else {
+          publishedCountDocRef.set({ count: 0 });
+        }
+      }
+    }
+  });
+
+// crontab.guru
+
+const runtimeOptions = {
+  timeoutSeconds: 300,
+  memory: "256MB",
+};
+
+exports.dailyCheckRecipePublishDate = functions
+  .runWith(runtimeOptions)
+  .pubsub.schedule("0 0 * * *")
+  .onRun(async () => {
+    console.log("dailyCheckRecipePublishDate() called - time to check");
+
+    const snapshot = await firestore
+      .collection("recipes")
+      .where("isPublished", "==", false)
+      .get();
+
+    snapshot.forEach(async (doc) => {
+      const data = doc.data();
+      const now = Date.now() / 1000;
+      const isPublished = data.publishDate._seconds <= now ? true : false;
+
+      if (isPublished) {
+        console.log(`Recipe: ${data.name} is now published!`);
+
+        firestore.collection("recipes").doc(doc.id).set(
+          {
+            isPublished,
+          },
+          {
+            merge: true,
+          }
+        );
+      }
+    });
+  });
+
+console.log('SERVER STARTED!');
