@@ -55,13 +55,91 @@ app.post("/recipes", async (request, response) => {
   }
 });
 
-app.get("/", (req, res) => {
-  res.send("Hello from firebase function express API");
+app.get("/recipes", async (request, response) => {
+  const authorizationHeader = request.headers["authorization"];
+  const queryObject = request.query;
+  const category = queryObject["category"] ? queryObject["category"] : "";
+  const orderByField = queryObject["orderByField"] ? queryObject["orderByField"] : "";
+  const orderByDircetion = queryObject["orderByDircetion"] ? queryObject["orderByDircetion"] : "asc";
+  const pageNumber = queryObject["pageNumber"] ? queryObject["pageNumber"] : "";
+  const perPage = queryObject["perPage"] ? queryObject["perPage"] : "";
+
+  let isAuth = false;
+  let collectionRef = firestore.collection("recipes");
+
+  try {
+    await Utilities.authorizeUser(authorizationHeader, auth);
+
+    isAuth = true;
+  } catch (error) {
+    collectionRef = collectionRef.where("isPublished", "==", true);
+  }
+
+  if(category) {
+    collectionRef = collectionRef.where("category", "==", category);
+  }
+
+  if(orderByField) {
+    collectionRef = collectionRef.orderby(orderByField, orderByDircetion);
+  }
+
+  if(perPage) {
+    collectionRef = collectionRef.limit(Number(perPage));
+  }
+
+  if(pageNumber && pageNumber > 0){
+    const pageNumberMultiplier = pageNumber -1;
+    const offset = pageNumberMultiplier * perPage;
+    collectionRef = collectionRef.offset(offset);
+  }
+
+  let recipeCount = 0;
+  let countDocRef;
+
+  if(isAuth) {
+    countDocRef = firestore.collection("recipesCounts").doc("all");
+  } else {
+    countDocRef = firestore.collection("recipesCounts").doc("published");
+  }
+
+  const countDoc = await countDocRef.get();
+
+  if(countDoc.exists) {
+    const countDocData = countDoc.data();
+
+    if(countDocData) {
+      recipeCount = countDocData.count;
+    }
+  }
+
+  try {
+    const firestoreResponse = await collectionRef.get();
+    const fetchedRecipes = firestoreResponse.docs.map((recipe) => {
+      const id = recipe.id;
+      const data = recipe.data();
+      data.publishDate = data.publishDate._seconds;
+
+      return {...data, id};
+    });
+    const payload = {
+      recipeCount,
+      documents: fetchedRecipes,
+    }
+
+    response.status(200).send(payload);
+  } catch (error) {
+    response.status(400).send(error.message);
+  }
+
 });
+
+app.get('/', (req, res, next) => {
+  res.send('Recipes API page');
+})
 
 if (process.env.NODE_ENV !== "production") {
   // Local dev
-  app.listen(3007, () => {
+  app.listen(3005, () => {
     console.log("API started");
   });
 }
