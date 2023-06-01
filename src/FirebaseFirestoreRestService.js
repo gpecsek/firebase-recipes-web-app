@@ -1,6 +1,6 @@
 import firebase from "./FirebaseConfig";
 
-const auth = firebase.auth();
+const auth = firebase.auth;
 
 const BASE_URL = process.env.REACT_APP_CLOUD_FIRESTORE_FUNCTION_API_URL;
 
@@ -8,7 +8,7 @@ const createDocument = async (collection, document) => {
     let token;
 
     try {
-        token = auth.currentUser.getIdToken();
+        token = await auth.currentUser.getIdToken();
     } catch (error) {
         alert(error.message);
         throw error;
@@ -102,7 +102,7 @@ const updateDocument = async (collection, id, document) => {
     let token;
 
     try {
-        token = auth.currentUser.getIdToken();
+        token = await auth.currentUser.getIdToken();
     } catch (error) {
         alert(error.message);
         throw error;
@@ -136,7 +136,7 @@ const deleteDocument = async (collection, id) => {
     let token;
 
     try {
-        token = auth.currentUser.getIdToken();
+        token = await auth.currentUser.getIdToken();
     } catch (error) {
         alert(error.message);
         throw error;

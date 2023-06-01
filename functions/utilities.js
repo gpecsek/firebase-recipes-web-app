@@ -66,7 +66,7 @@ const sanitizeRecipePostPut = (newRecipe) => {
     recipe.publishDate = new Date(newRecipe.publishDate * 1000);
     recipe.isPublished = newRecipe.isPublished;
     recipe.ingredients = newRecipe.ingredients;
-    recipe.imageUrl = newRecipe.name;
+    recipe.imageUrl = newRecipe.imageUrl;
 
     return recipe;
 }

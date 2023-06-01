@@ -5,7 +5,7 @@ import AddEditRecipeForm from "./components/AddEditRecipeForm";
 
 import "./App.css";
 import FirebaseFirestoreService from "./FirebaseFirestoreService";
-import FirebaseFirestoreRestService from "./FirebaseFirestoreRestService";
+import FirebaseFirestoreRestService from "./FirebaseFirestoreRestService"
 
 function App() {
   const [user, setUser] = useState(null);
