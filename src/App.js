@@ -5,6 +5,7 @@ import AddEditRecipeForm from "./components/AddEditRecipeForm";
 
 import "./App.css";
 import FirebaseFirestoreService from "./FirebaseFirestoreService";
+import FirebaseFirestoreRestService from "./FirebaseFirestoreRestService";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -145,7 +146,12 @@ function App() {
 
   async function handleAddRecipe(newRecipe) {
     try {
-      const response = await FirebaseFirestoreService.createDocument(
+      /* const response = await FirebaseFirestoreService.createDocument(
+        "recipes",
+        newRecipe
+      ); */
+
+      const response = await FirebaseFirestoreRestService.createDocument(
         "recipes",
         newRecipe
       );
