@@ -4,6 +4,7 @@ const cors = require("cors");
 
 const FirebaseConfig = require("./FirebaseConfig");
 const Utilities = require("./utilities.js");
+const { authorizeUser } = require("./utilities.js");
 
 const auth = FirebaseConfig.auth;
 const firestore = FirebaseConfig.firestore;
@@ -60,7 +61,7 @@ app.get("/recipes", async (request, response) => {
   const queryObject = request.query;
   const category = queryObject["category"] ? queryObject["category"] : "";
   const orderByField = queryObject["orderByField"] ? queryObject["orderByField"] : "";
-  const orderByDircetion = queryObject["orderByDircetion"] ? queryObject["orderByDircetion"] : "asc";
+  const orderByDirection = queryObject["orderByDirection"] ? queryObject["orderByDirection"] : "asc";
   const pageNumber = queryObject["pageNumber"] ? queryObject["pageNumber"] : "";
   const perPage = queryObject["perPage"] ? queryObject["perPage"] : "";
 
@@ -80,7 +81,7 @@ app.get("/recipes", async (request, response) => {
   }
 
   if(orderByField) {
-    collectionRef = collectionRef.orderby(orderByField, orderByDircetion);
+    collectionRef = collectionRef.orderBy(orderByField, orderByDirection);
   }
 
   if(perPage) {
@@ -127,6 +128,67 @@ app.get("/recipes", async (request, response) => {
     }
 
     response.status(200).send(payload);
+  } catch (error) {
+    response.status(400).send(error.message);
+  }
+
+});
+
+app.put("/recipes/:id", async (request, response) => {
+  const authorizationHeader = request.headers["authorization"];
+
+  if(!authorizationHeader) {
+    response.status(401).send('Missing authorization Header');
+    return;
+  }
+
+  try {
+    await Utilities.authorizeUser(authorizationHeader, auth);
+  } catch (error) {
+    response.status(401).send(error.message);
+    return;
+  }
+
+  const id = request.params.id;
+  const newRecipe = request.body;
+  const missingFields = Utilities.validateRecipePostPut(newRecipe);
+
+  if(missingFields) {
+    response.status(401).send(`Recipe is not valid. Missing/invalid fields: ${missingFields}`);
+    return;
+  }
+
+  const recipe = Utilities.sanitizeRecipePostPut(newRecipe);
+
+  try {
+    await firestore.collection("recipes").doc(id).set(recipe);
+
+    response.status(200).send({ id });
+  } catch (error) {
+    response.status(400).send(error.message);
+  }
+
+});
+
+app.delete("/recipes/:id", async (request, response) => {
+  const authorizationHeader = request.headers["authorization"];
+
+  if(!authorizeUser) {
+    response.status(401).send("Missing authorization Header");
+    return;
+  }
+
+  try {
+    await Utilities.authorizeUser(authorizationHeader, auth);
+  } catch (error) {
+    response.status(401).send(error.message);
+  }
+
+  const id = request.params.id;
+
+  try {
+    await firestore.collection("recipes").doc(id).delete();
+    response.status(200).send();
   } catch (error) {
     response.status(400).send(error.message);
   }
