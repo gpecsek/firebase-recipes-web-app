@@ -180,12 +180,12 @@ function App() {
     });
   }
 
-  function handleLoadMoreRecips() {
+/*   function handleLoadMoreRecips() {
     const lastRecipe = recipes[recipes.length - 1];
     const cursorId = lastRecipe.id;
 
     handleFetchRecipes(cursorId);
-  }
+  } */
 
   async function handleFetchRecipes(cursorId = "") {
     try {
